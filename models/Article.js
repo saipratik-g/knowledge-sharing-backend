@@ -8,7 +8,7 @@ const Article = sequelize.define('Article', {
         allowNull: false,
     },
     category: {
-        type: DataTypes.ENUM('Tech', 'AI', 'Backend', 'Frontend', 'DevOps'),
+        type: DataTypes.STRING,
         allowNull: false,
     },
     content: {

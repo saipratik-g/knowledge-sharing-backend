@@ -27,8 +27,16 @@ const signup = async (req, res) => {
         // Create user
         const user = await User.create({ username, email, password: hashedPassword });
 
+        // Auto-generate JWT so the user is logged in immediately after signup
+        const token = jwt.sign(
+            { id: user.id, email: user.email },
+            process.env.JWT_SECRET,
+            { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+        );
+
         return res.status(201).json({
             message: 'User registered successfully.',
+            token,
             user: { id: user.id, username: user.username, email: user.email },
         });
     } catch (error) {

@@ -10,21 +10,24 @@ const { improveContent, generateSummary } = require('../services/aiService');
  */
 const createArticle = async (req, res) => {
     try {
-        const { title, category, content, tags, useAI } = req.body;
+        const { title, category, content, tags, shortSummary, useAI } = req.body;
 
         if (!title || !category || !content) {
             return res.status(400).json({ message: 'Title, category, and content are required.' });
         }
 
         const finalContent = useAI ? improveContent(content) : content;
-        const shortSummary = generateSummary(finalContent);
+        // Use the user-provided summary if given, otherwise auto-generate
+        const finalSummary = shortSummary?.trim()
+            ? shortSummary.trim()
+            : generateSummary(finalContent);
 
         const article = await Article.create({
             title,
             category,
             content: finalContent,
             tags,
-            shortSummary,
+            shortSummary: finalSummary,
             userId: req.user.id,
         });
 
@@ -128,6 +131,9 @@ const updateArticle = async (req, res) => {
             tags: tags ?? article.tags,
             shortSummary,
         });
+
+        // Reload to return the updated fields (not stale pre-update snapshot)
+        await article.reload();
 
         return res.status(200).json({ message: 'Article updated successfully.', article });
     } catch (error) {
